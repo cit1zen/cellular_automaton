@@ -18,7 +18,7 @@ class LatticeBasic():
     4
     """
 
-    def __init__(self, rows, cols, default_state=1):
+    def __init__(self, rows, cols):
         """
         Constructor.
 
@@ -129,7 +129,7 @@ class LatticeHistory(LatticeBasic):
     Saves previus states of lattice.
     """
 
-    def __init__(self, rows, cols, default_state=0):
+    def __init__(self, rows, cols):
         """
         Constructor.
 
@@ -140,7 +140,7 @@ class LatticeHistory(LatticeBasic):
         :param default_state: Begining state of cells.
         :type default_state: int
         """
-        super().__init__(rows, cols, default_state)
+        super().__init__(rows, cols)
         self._history = []
         # In case we go back and create new branch of history
         # we need to remove old one
@@ -268,8 +268,83 @@ class LatticeHistory(LatticeBasic):
             else:
                 logger.warning("No such save.")
 
+    def reset(self):
+        """
+        Reset lattice to default state and delete history.
+        """
+        self.load(0)
+        self.save()
 
-class Lattice(LatticeHistory):
+
+class LatticeFile(LatticeHistory):
+    """
+    Layer adds functions for loading and saving CA into files.
+    """
+
+    def __init__(self, rows, cols):
+        """
+        Constructor.
+
+        :param rows: Number of rows.
+        :type rows: int
+        :param cols: Number of columns.
+        :type cols: int
+        :param default_state: Begining state of cells.
+        :type default_state: int
+        """
+        super().__init__(rows, cols)
+
+    def load_from_file(self, file_name, resize=False, delimiter=" "):
+        """
+        Loads lattice from file.
+
+        :param file_name: Name of file.
+        :type file_name: str
+        :param resize: If CA schould be resized, if loaded lattice do not fit.
+        :type resize: boolean
+        :param delimiter: Delimiter used to split cells inside file.
+        :type delimiter: str
+        """
+        with open(file_name, "r") as f:
+            logger.debug("Loading lattice from {}".format(file_name))
+            temp = [[y for y in x.split(delimiter) if not None] for x in f]
+            rows = len(temp)
+            cols = max([len(x) for x in temp])
+            if rows <= self._rows and cols <= self._cols:
+                self.reset()
+                # Copy temp into center of lattice
+                for row in range(rows):
+                    for col in range(cols):
+                        try:
+                            self._lattice[
+                                self._rows - rows + row][self._cols - cols + col] = int(temp[row][col])
+                        except IndexError:
+                            break
+            else:
+                logger.debug("Resize lattice")
+                if resize:
+                    # Create new lattice with good size
+                    super().__init__(rows, cols)
+                    # Copy temp lattice into CA
+                    self.copy(temp)
+
+    def save_to_file(self, file_name, delimiter=" "):
+        """
+        Saves lattice into file in form of text.
+
+        :param file_name: Name of file.
+        :type file_name: str
+        :param delimiter: Delimiter used to split cells inside file.
+        :type delimiter: str
+        """
+        with open(file_name, "w") as f:
+            for row in self._rows:
+                for col in self._cols:
+                    f.write(str(col) + delimiter)
+                f.write("\n")
+
+
+class Lattice(LatticeFile):
     """
     1D or 2D lattice of cells.
 
@@ -280,9 +355,3 @@ class Lattice(LatticeHistory):
     3    S
     4
     """
-
-    def __init__(self, rows, cols, default_state=0):
-        """
-        Constructor.
-        """
-        super().__init__(rows, cols, default_state)
