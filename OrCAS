@@ -1,0 +1,168 @@
+#!/usr/bin/env python3
+"""
+Python3 implementation of cellular automaton.
+
+Rules of CA are encoded by CMR (Conditionally matching rules).
+"""
+
+import os
+import sys
+import pygame
+import numpy as np
+
+pygame.init()
+
+# implicitni velikost CA (_SIZE x _SIZE bunek) - modifikovatelne
+_SIZE = 50
+# velikost okna celularniho prostoru (_WIN x _WIN pixelu) - modif.
+_WIN = 600
+
+# nejake barevne konstanty
+white = pygame.Color(0xFFFFFF00)
+black = pygame.Color(0x00000000)
+red = pygame.Color(0xFF000000)
+green = pygame.Color(0x00FF0000)
+blue = pygame.Color(0x0000FF00)
+cyan = pygame.Color(0x00FFFF00)
+magenta = pygame.Color(0xFF00FF00)
+yellow = pygame.Color(0xFFFF0000)
+gray = pygame.Color(0x64646400)
+pink = pygame.Color(0xFF087F00)
+brown = pygame.Color(0x825A2C00)
+orange = pygame.Color(0xFA680000)
+violet = pygame.Color(0xAA00FF00)
+
+color = [ black, red, green, yellow, brown, white, orange, cyan, violet,
+          gray, magenta, pink, blue ]
+
+class CAGui:
+    """
+    Gui for cellular automaton
+    """
+    # Keybinding
+    keys = [
+            # Next rule
+            pygame.K_RIGHT:,
+            # Previus rule
+            pygame.K_LEFT:,
+            # Next generation
+            pygame.K_t:,
+            pygame.K_UP:,
+            pygame.K_SPACE:,
+            # Previus generation
+            pygame.K_DOWN:,
+            # Reset to original pattern.
+            pygame.K_i:reset,
+            # Reset to clean lattice
+            pygame.K_s:reset_clean,
+            # Exit prog
+            pygame.K_ESCAPE:sys.exit(0)
+           ]
+
+    def next_gen(self):
+        """
+        Develop CA, next gen of CA.
+        """
+        self.auto.next()
+
+    def prev_gen(self):
+        """
+        Step one generation back.
+        """
+        raise NotImplementedError(__name__)
+
+    def reset_clean(self):
+        """
+        Reset lattice into clean state.
+        """
+        self.auto.reset()
+
+    def reset(self):
+        """
+        Reset lattice to original pattern.
+        """
+        self.load(1)
+
+    def next_rule(self):
+        """
+        Load next rules into automaton and reset it.
+        """
+        raise NotImplementedError(__name__)
+
+    def prev_rule(self):
+        """
+        Load previous rules into automaton and reset it.
+        """
+        raise NotImplementedError(__name__)
+
+
+    def _load_rule(self, index):
+        pass
+
+    def __init__(self, auto):
+        """
+        Constructor.
+
+        :param auto: Automaton.
+        :type auto: # TODO
+        """
+        self.auto = auto
+        self.rule_file_list = []
+        # nastaveni rozmeru bunek vzhledem k velikosti okna
+        self.cell_w = pygame.display.Info().current_w / self.cols
+        self.cell_h = pygame.display.Info().current_h / self.rows
+
+    def set_clicked_cell(self, (pos_x, pos_y)):
+        """
+        Increases state of cell. 
+        """
+        row = pos_y / self.cell_h + 1
+        col = pos_x / self.cell_w + 1
+        temp = (self.get_cell(row, col) + 1) % self.states
+        self.set_cell(row, col, temp)
+
+    def draw(self, win):
+        """
+        Draw CA onto window
+        """
+        for row in range(self.rows+1):
+            for col in range(1, self.cols+1):
+                pygame.draw.rect(win, color[self.get_cell(row, col)],
+                                ((col-1)*self.cell_w, (row-1)*self.cell_h,
+                                self.cell_w, self.cell_h), 0)
+                pygame.draw.rect(win, blue,
+                                ((col-1)*self.cell_w, (row-1)*self.cell_h,
+                                self.cell_w, self.cell_h), 1)
+        pygame.display.update()
+
+    def main_loop(self, win):
+        """
+        Main loop of GUI.
+        """
+        while True:
+            for event in pygame.event.get():
+                # Quit
+                if event.type == pygame.QUIT:
+                    sys.exit(0)
+                # Pressing key
+                elif event.type == pygame.KEYDOWN:
+                    try:
+                        keys[event.key]()
+                        self.draw(win)
+                    # Some key we do not map
+                    except KeyError:
+                        pass
+                # Mouse pressed
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    self.set_clicked_cell(pygame.mouse.get_pos())
+                    self.draw(win)
+
+def main():
+    win = pygame.display.set_mode((_WIN, _WIN))
+    ca = run_parser()
+    ca.draw(win)
+    pygame.display.flip()
+    main_loop(ca, win)
+
+if __name__ == "__main__":
+    main()
