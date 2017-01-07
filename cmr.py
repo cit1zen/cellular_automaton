@@ -20,17 +20,6 @@ class Cmr(Lattice):
     Structure XAXAXAXAX where X is state and A is cmr condition
     """
 
-    @staticmethod
-    def add_arguments(parser):
-        """
-        Adds arguments specific for this class.
-
-        :param parser: CMD argument parser.
-        :type parser: argparse.ArgumentParser
-        """
-        parser.add_argument("-r", "--rules", nargs="+", required=True,
-                            help="Rule files")
-
     def __init__(self, rows, cols):
         """
         Constructor.
@@ -63,7 +52,7 @@ class Cmr(Lattice):
         :type rule: string or list
         """
         if len(rule) == self.rule_size():
-            if isinstance(list) or isinstance(str):
+            if isinstance(rule, list) or isinstance(rule, str):
                 self._rules.append([int(x) for x in rule])
         else:
             logger.warning("Bad size of rule, rule not added")
@@ -97,6 +86,23 @@ class Cmr(Lattice):
         Get all current rules.
         """
         return self._rules
+
+    @staticmethod
+    def valid_rule(rule_string):
+        raise NotImplementedError(__name__)
+
+    def load_rules_from_file(self, file_name, delimiter):
+        """
+        Loads rules from file.
+
+        :param file_name: Name of file.
+        :type file_name: str
+        :param delimiter: Delimeter used to split cells inside file.
+        :type delimiter: str
+        """
+        raise NotImplementedError(__name__)
+        with open(file_name, "r") as f:
+            pass
 
     @staticmethod
     def _right_rule(hood, rule):
@@ -143,9 +149,10 @@ class Cmr(Lattice):
         Next step of automaton. 
         """
         super().next()
-        for row in self._rows:
-            for col in self._cols:
+        for row in range(self._rows):
+            for col in range(self._cols):
                 hood = self.neumann(row, col, -1)
                 for rule in self._rules:
                     if self._right_rule(hood, rule):
                         self.set_cell(row, col, rule[-1])
+                        break
