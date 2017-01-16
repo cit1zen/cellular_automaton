@@ -17,6 +17,7 @@ class LatticeBasic():
     3    S
     4
     """
+
     def __init__(self, rows, cols, states):
         """
         Constructor.
@@ -79,7 +80,7 @@ class LatticeBasic():
         :type resize: boolean
         """
         row_size = len(template)
-        col_size = 0 
+        col_size = 0
         # Checks states
         for row in range(len(template)):
             for col in range(len(template[row])):
@@ -101,13 +102,14 @@ class LatticeBasic():
             else:
                 logger.error("Template bigger than lattice.")
                 return
-        else:       
+        else:
             self.reset()
 
         # Put template inside lattice
-        for row in range(row_sizes):
+        for row in range(row_size):
             for col in range(col_size):
-                self._lattice[self._rows - rows + row][self._cols - cols + col] = int(template[row][col])
+                self._lattice[self._rows - row_size + row][self._cols -
+                                                           col_size + col] = int(template[row][col])
 
     def neumann(self, row, col):
         """
@@ -152,7 +154,7 @@ class LatticeBasic():
         Resets lattice to default state.
         """
         self._lattice = [[0 for x in range(self._cols)]
-                         for x in range(self._rows)]        
+                         for x in range(self._rows)]
 
 
 class LatticeHistory(LatticeBasic):
@@ -311,6 +313,7 @@ class LatticeHistory(LatticeBasic):
         self._hist_index = 0
         self._history = []
         super().reset()
+
 
 class Lattice(LatticeHistory):
     """

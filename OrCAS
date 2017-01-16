@@ -42,13 +42,15 @@ brown = pygame.Color(0x825A2C00)
 orange = pygame.Color(0xFA680000)
 violet = pygame.Color(0xAA00FF00)
 
-color = [ black, red, green, yellow, brown, white, orange, cyan, violet,
-          gray, magenta, pink, blue ]
+color = [black, red, green, yellow, brown, white, orange, cyan, violet,
+         gray, magenta, pink, blue]
+
 
 class CAGui:
     """
     Gui for cellular automaton
     """
+
     def __init__(self, auto, win):
         """
         Constructor.
@@ -69,21 +71,21 @@ class CAGui:
 
         self.keys = {
             # Next rule
-            pygame.K_RIGHT:self.next_rule,
+            pygame.K_RIGHT: self.next_rule,
             # Previus rule
-            pygame.K_LEFT:self.prev_rule,
+            pygame.K_LEFT: self.prev_rule,
             # Next generation
-            pygame.K_t:self.next_gen,
-            pygame.K_UP:self.next_gen,
-            pygame.K_SPACE:self.next_gen,
+            pygame.K_t: self.next_gen,
+            pygame.K_UP: self.next_gen,
+            pygame.K_SPACE: self.next_gen,
             # Previus generation
-            pygame.K_DOWN:self.prev_gen,
+            pygame.K_DOWN: self.prev_gen,
             # Reset to clean lattice
-            pygame.K_c:self.reset,
+            pygame.K_c: self.reset,
             # Exit prog
             # TODO
-            pygame.K_ESCAPE:self.exit
-            }
+            pygame.K_ESCAPE: self.exit
+        }
 
     def exit(self):
         """
@@ -103,7 +105,7 @@ class CAGui:
         Step one generation back.
         """
         logger.debug("prev_gen")
-        if self.auto.current_save() !=0:
+        if self.auto.current_save() != 0:
             self.auto.load((self.auto.current_save() - 1))
 
     def save_to_img(self):
@@ -127,7 +129,7 @@ class CAGui:
         """
         logger.debug("next_rule")
         if self.rule_file_list:
-            self.rule_index = (self.rule_index + 1 ) % len(self.rule_file_list)
+            self.rule_index = (self.rule_index + 1) % len(self.rule_file_list)
             filename = str(self.rule_file_list[self.rule_index])
             logger.info("Loading CA from" + filename)
             self._load_from_json(filename)
@@ -139,7 +141,7 @@ class CAGui:
         logger.debug("prev_rule")
         if self.rule_file_list:
             if self.rule_index == 0:
-                self.rule_index = len(self.rule_file_list) - 1 
+                self.rule_index = len(self.rule_file_list) - 1
             else:
                 self.rule_index = self.rule_index - 1
             filename = str(self.rule_file_list[self.rule_index])
@@ -174,15 +176,15 @@ class CAGui:
         :type lines: boolean
         """
         # TODO draw without lines
-        for row in range(self.auto._rows+1):
-            for col in range(1, self.auto._cols+1):
+        for row in range(self.auto._rows + 1):
+            for col in range(1, self.auto._cols + 1):
                 pygame.draw.rect(self.win, color[self.auto.get_cell(row, col)],
-                                ((col-1)*self.cell_w, (row-1)*self.cell_h,
-                                self.cell_w, self.cell_h), 0)
+                                 ((col - 1) * self.cell_w, (row - 1) * self.cell_h,
+                                  self.cell_w, self.cell_h), 0)
                 if border:
                     pygame.draw.rect(self.win, blue,
-                                    ((col-1)*self.cell_w, (row-1)*self.cell_h,
-                                    self.cell_w, self.cell_h), 1)
+                                     ((col - 1) * self.cell_w, (row - 1) * self.cell_h,
+                                      self.cell_w, self.cell_h), 1)
         pygame.display.update()
 
     def main_loop(self):
@@ -206,6 +208,7 @@ class CAGui:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     self.set_clicked_cell(pygame.mouse.get_pos())
                 self.draw()
+
 
 def main():
     win = pygame.display.set_mode((_WIN, _WIN))

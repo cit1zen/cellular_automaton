@@ -91,7 +91,7 @@ class Cmr(Lattice):
         :returns: If rule-string is valid rule.
         :rtype: boolean
         """
-        if len(rule_string) != self.rule_size():    
+        if len(rule_string) != self.rule_size():
             return False
         # XAXAXAXAX where X is state and A is cmr condition
         for i in rule_string:
