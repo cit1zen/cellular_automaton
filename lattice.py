@@ -17,8 +17,7 @@ class LatticeBasic():
     3    S
     4
     """
-
-    def __init__(self, rows, cols):
+    def __init__(self, rows, cols, states):
         """
         Constructor.
 
@@ -26,13 +25,14 @@ class LatticeBasic():
         :type rows: int
         :param cols: Number of columns.
         :type cols: int
-        :param default_state: Begining state of cells.
-        :type default_state: int
+        :param states: Number of states.
+        :type states: int
         """
         self._lattice = [[0 for x in range(cols)]
                          for x in range(rows)]
         self._rows = rows
         self._cols = cols
+        self._states = states
 
     def set_cell(self, row, col, value):
         """
@@ -69,21 +69,45 @@ class LatticeBasic():
         except IndexError:
             return 0
 
-    def copy(self, template):
+    def copy(self, template, resize=True):
         """
         Copies template into lattice.
 
         :param template: Lattice to be copied into our lattice.
-        :type template: list
+        :type template: 2D list
+        :param resize: Resize original lattice if neccesary.
+        :type resize: boolean
         """
-        try:
-            temp_lattice = self._lattice
-            for row in len(template):
-                for col in len(template[row]):
-                    temp_lattice = template[row][col]
-            self._lattice = temp_lattice
-        except IndexError:
-            logger.error("template bigger than lattice")
+        row_size = len(template)
+        col_size = 0 
+        # Checks states
+        for row in range(len(template)):
+            for col in range(len(template[row])):
+                if template[row][col] >= self.states:
+                    logger.error("Copy lattice with unknown states.")
+                    return
+            if len(template[row]) > col_size:
+                col_size = len(template[row])
+        # If template bigger than lattice
+        if (row_size > self._rows or col_size > self._cols):
+            # Resize lattice
+            if resize:
+                if row_size > self._rows:
+                    self._rows = row_size
+                if col_size > self._cols:
+                    self._cols = col_size
+                self._lattice = [[0 for x in range(self._rows)]
+                                 for x in range(self._cols)]
+            else:
+                logger.error("Template bigger than lattice.")
+                return
+        else:       
+            self.reset()
+
+        # Put template inside lattice
+        for row in range(row_sizes):
+            for col in range(col_size):
+                self._lattice[self._rows - rows + row][self._cols - cols + col] = int(template[row][col])
 
     def neumann(self, row, col):
         """
@@ -123,13 +147,20 @@ class LatticeBasic():
                 hood.append(self.get_cell(row + row_off, col + col_off))
         return hood
 
+    def reset(self):
+        """
+        Resets lattice to default state.
+        """
+        self._lattice = [[0 for x in range(self._cols)]
+                         for x in range(self._rows)]        
+
 
 class LatticeHistory(LatticeBasic):
     """
     Saves previus states of lattice.
     """
 
-    def __init__(self, rows, cols):
+    def __init__(self, rows, cols, states):
         """
         Constructor.
 
@@ -137,15 +168,14 @@ class LatticeHistory(LatticeBasic):
         :type rows: int
         :param cols: Number of columns.
         :type cols: int
-        :param default_state: Begining state of cells.
-        :type default_state: int
+        :param states: Number of states.
+        :type states: int
         """
-        super().__init__(rows, cols)
+        super().__init__(rows, cols, states)
         self._history = []
         # In case we go back and create new branch of history
         # we need to remove old one
         self._hist_index = 0
-        self.save()
 
     def save(self):
         """
@@ -162,6 +192,12 @@ class LatticeHistory(LatticeBasic):
         """
         return len(self._history)
 
+    def current_save(self):
+        """
+        Returns current history index.
+        """
+        return self._hist_index
+
     def load(self, index):
         """
         Loads save from history.
@@ -171,7 +207,7 @@ class LatticeHistory(LatticeBasic):
         """
         if index < self.save_count():
             self._hist_index = index
-            self._lattice = self._history[index]
+            self._lattice = copy.deepcopy(self._history[index])
             logger.debug("Lattice loaded.")
         else:
             logger.warning("No such save.")
@@ -272,79 +308,11 @@ class LatticeHistory(LatticeBasic):
         """
         Reset lattice to default state and delete history.
         """
-        self.load(0)
-        self.save()
+        self._hist_index = 0
+        self._history = []
+        super().reset()
 
-
-class LatticeFile(LatticeHistory):
-    """
-    Layer adds functions for loading and saving CA into files.
-    """
-
-    def __init__(self, rows, cols):
-        """
-        Constructor.
-
-        :param rows: Number of rows.
-        :type rows: int
-        :param cols: Number of columns.
-        :type cols: int
-        :param default_state: Begining state of cells.
-        :type default_state: int
-        """
-        super().__init__(rows, cols)
-
-    def load_from_file(self, file_name, resize=False, delimiter=" "):
-        """
-        Loads lattice from file.
-
-        :param file_name: Name of file.
-        :type file_name: str
-        :param resize: If CA schould be resized, if loaded lattice do not fit.
-        :type resize: boolean
-        :param delimiter: Delimiter used to split cells inside file.
-        :type delimiter: str
-        """
-        with open(file_name, "r") as f:
-            logger.debug("Loading lattice from {}".format(file_name))
-            temp = [[y for y in x.split(delimiter) if not None] for x in f]
-            rows = len(temp)
-            cols = max([len(x) for x in temp])
-            if rows <= self._rows and cols <= self._cols:
-                self.reset()
-                # Copy temp into center of lattice
-                for row in range(rows):
-                    for col in range(cols):
-                        try:
-                            self._lattice[
-                                self._rows - rows + row][self._cols - cols + col] = int(temp[row][col])
-                        except IndexError:
-                            break
-            else:
-                logger.debug("Resize lattice")
-                if resize:
-                    # Create new lattice with good size
-                    super().__init__(rows, cols)
-                    # Copy temp lattice into CA
-                    self.copy(temp)
-
-    def save_to_file(self, file_name, delimiter=" "):
-        """
-        Saves lattice into file in form of text.
-
-        :param file_name: Name of file.
-        :type file_name: str
-        :param delimiter: Delimiter used to split cells inside file.
-        :type delimiter: str
-        """
-        with open(file_name, "w") as f:
-            for row in self._rows:
-                for col in self._cols:
-                    f.write(str(col) + delimiter)
-                f.write("\n")
-
-
-class Lattice(LatticeFile):
+class Lattice(LatticeHistory):
     """
     1D or 2D lattice of cells.
 

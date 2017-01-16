@@ -20,7 +20,7 @@ class Cmr(Lattice):
     Structure XAXAXAXAX where X is state and A is cmr condition
     """
 
-    def __init__(self, rows, cols):
+    def __init__(self, rows, cols, states):
         """
         Constructor.
 
@@ -28,8 +28,10 @@ class Cmr(Lattice):
         :type rows: int
         :param cols: Number of columns.
         :type cols: int
+        :param states: Number of states.
+        :type states: int
         """
-        super().__init__(rows, cols)
+        super().__init__(rows, cols, states)
         self._rules = []
 
     def rule_size(self):
@@ -51,9 +53,8 @@ class Cmr(Lattice):
         :param rule: One CMR rule.
         :type rule: string or list
         """
-        if len(rule) == self.rule_size():
-            if isinstance(rule, list) or isinstance(rule, str):
-                self._rules.append([int(x) for x in rule])
+        if self.valid_rule(rule):
+            self._rules.append([int(x) for x in rule])
         else:
             logger.warning("Bad size of rule, rule not added")
 
@@ -81,28 +82,28 @@ class Cmr(Lattice):
         except IndexError:
             logger.warning("Deleting non-existent rule.")
 
-    def get_rules(self):
+    def valid_rule(self, rule_string):
         """
-        Get all current rules.
-        """
-        return self._rules
+        If rule-string is valid rule for this automaton.
 
-    @staticmethod
-    def valid_rule(rule_string):
-        raise NotImplementedError(__name__)
-
-    def load_rules_from_file(self, file_name, delimiter):
+        :param rule_string: Rule
+        :type rule_string: str
+        :returns: If rule-string is valid rule.
+        :rtype: boolean
         """
-        Loads rules from file.
-
-        :param file_name: Name of file.
-        :type file_name: str
-        :param delimiter: Delimeter used to split cells inside file.
-        :type delimiter: str
-        """
-        raise NotImplementedError(__name__)
-        with open(file_name, "r") as f:
-            pass
+        if len(rule_string) != self.rule_size():    
+            return False
+        # XAXAXAXAX where X is state and A is cmr condition
+        for i in rule_string:
+            # If state
+            if i % 2 == 0:
+                if i >= self.states:
+                    return False
+            # If condition
+            else:
+                if i >= 4:
+                    return False
+        return True
 
     @staticmethod
     def _right_rule(hood, rule):
