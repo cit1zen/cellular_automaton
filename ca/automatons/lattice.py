@@ -8,12 +8,12 @@ import logging
 LOG = logging.getLogger(__name__)
 
 
-class Lattice(object):
+class Lattice():
     """
     Lattice for cellular automatons.
     """
 
-    def __init__(self, height, width, infinite=True):
+    def __init__(self, height, width, states, infinite=True):
         """
         Constructor.
 
@@ -29,6 +29,7 @@ class Lattice(object):
         # Current generation of cellular
         self._gen = 0
         self._inf = infinite
+        self._states = states
 
     def proportions(self):
         """
@@ -122,40 +123,3 @@ class Lattice(object):
         Move back in history.
         """
         self.move(-1)
-
-    @classmethod
-    def add_args(cls, parser):
-        """
-        Add module specific args.
-
-        Args:
-            parser - ArgumentParser.
-        """
-        parser.add_argument('-h', '--height', type=int,
-                            help="height of the lattice")
-        parser.add_argument('-w', '--width', type=int,
-                            help="width of the lattice")
-        # parser.add_argument('--infinite', default=False, action='store_true')
-
-    @classmethod
-    def get_instance(cls, args=None, config=None):
-        """
-        Get configured instance of the class.
-
-        Args:
-            args - CMD arguments.
-            config - Configuration from file.
-
-        Returns:
-            Configured class or None.
-        """
-        try:
-            return cls(args.height if args and args.height
-                       else config.get('lattice', 'height'),
-                       args.width if args and args.width
-                       else config.get('lattice', 'width'))
-        except (ValueError, AttributeError):
-            LOG.exception("Unable to configure {} class"
-                          .format(cls.__name__))
-            raise
-

@@ -2,8 +2,12 @@
 User interface created using pygame library.
 """
 
+import logging
+
 import pygame
 
+
+LOG = logging.getLogger(__name__)
 
 # Color const.
 WHITE = pygame.Color(0xFFFFFF00)
@@ -28,24 +32,6 @@ class CAPygameUI():
     User interface created using pygame library.
     """
 
-    self.keys = {
-        # Next rule
-        pygame.K_RIGHT: self.next_rule,
-        # Previus rule
-        pygame.K_LEFT: self.prev_rule,
-        # Next generation
-        pygame.K_t: self.next_gen,
-        pygame.K_UP: self.next_gen,
-        pygame.K_SPACE: self.next_gen,
-        # Previus generation
-        pygame.K_DOWN: self.prev_gen,
-        # Reset to clean lattice
-        pygame.K_c: self.reset,
-        # Exit prog
-        # TODO
-        pygame.K_ESCAPE: self.exit
-    }
-
     def __init__(self, cell_x, cell_y, automatons, border=True):
         """
         Constructor.
@@ -62,6 +48,21 @@ class CAPygameUI():
         self._index = 0
         self._border = border
         self._win = None
+        self.keys = {
+            # Next rule
+            pygame.K_RIGHT: self._next_auto,
+            # Previus rule
+            pygame.K_LEFT: self._prev_auto,
+            # Next generation
+            pygame.K_UP: self._next,
+            # Previus generation
+            pygame.K_DOWN: self._back,
+            # Reset to clean lattice
+            pygame.K_c: self._reset,
+            # Exit prog
+            # TODO
+            pygame.K_ESCAPE: self._exit
+        }
 
     def _fit_ca(self):
         """
@@ -123,78 +124,67 @@ class CAPygameUI():
         """
         Exit.
         """
+        # TODO
         sys.exit(0)
 
     def _next(self):
         """
         Develop CA, next gen of CA.
         """
-        logger.debug("_next")
+        LOG.debug("_next")
         self._auto[self._index].next()
 
     def _back(self):
         """
         Step one generation back.
         """
-        logger.debug("_back")
+        LOG.debug("_back")
         self._auto[self._index].back()
 
-#     def save_to_img(self):
-#         """
-#         Saves lattice to jpeg.
-#         """
-#         filename = str(self.auto.current_save()) + ".jpeg"
-#         logger.info("Saving lattice as " + filename)
-#         pygame.image.save(self.win, filename)
+    def _save_to_img(self):
+        """
+        Saves lattice to jpeg.
+        """
+        filename = str(self._auto[self._index]._gen) + ".jpeg"
+        LOG.info("Saving lattice as " + filename)
+        pygame.image.save(self._win, filename)
 
-#     def reset(self):
-#         """
-#         Reset lattice to clean state.
-#         """
-#         logger.debug("reset")
-#         self.auto.reset()
+    def _reset(self):
+        """
+        Reset lattice to clean state.
+        """
+        LOG.debug("reset")
+        self._auto[self._index].move(-self._auto[self._index]._gen)
 
-#     def next_rule(self):
-#         """
-#         Load next rules into automaton and reset it.
-#         """
-#         logger.debug("next_rule")
-#         if self.rule_file_list:
-#             self.rule_index = (self.rule_index + 1) % len(self.rule_file_list)
-#             filename = str(self.rule_file_list[self.rule_index])
-#             logger.info("Loading CA from" + filename)
-#             self._load_from_json(filename)
+    def _next_auto(self):
+        """
+        Load next automaton.
+        """
+        LOG.debug("next_rule")
+        if self._auto:
+            self._index = (self._index + 1) % len(self._auto)
+            self._fit_ca()
+            self._draw()
 
-#     def prev_rule(self):
-#         """
-#         Load previous rules into automaton and reset it.
-#         """
-#         logger.debug("prev_rule")
-#         if self.rule_file_list:
-#             if self.rule_index == 0:
-#                 self.rule_index = len(self.rule_file_list) - 1
-#             else:
-#                 self.rule_index = self.rule_index - 1
-#             filename = str(self.rule_file_list[self.rule_index])
-#             logger.info("Loading CA from" + filename)
-#             self._load_from_json(filename)
+    def _prev_rule(self):
+        """
+        Load previous automaton.
+        """
+        LOG.debug("prev_rule")
+        if self._auto:
+            self._index -= 1
+            if self._index < 0:
+                self._index = len(self._auto) - 1
+            self._fit_ca()
+            self._draw()
 
-#     def _load_from_json(self, filename):
-#         """
-#         Loads JSON from file and recreates automaton from it.
-#         """
-#         raise NotImplementedError("load_from_json")
-#         with open(filename, "r") as f:
-#             json_data = json.load(f)
-#             # Check rules
-#             for rule in json_data:
-#                 pass
-
-#     def set_clicked_cell(self, pos):
-#         """
-#         Increases state of cell. 
-#         """
-#         row = int(pos[1] / self.cell_h + 1)
-#         col = int(pos[0] / self.cell_w + 1)
-#         temp = (self.auto.get_cell(row, col) + 1) % self.auto._states
-#         self.auto.set_cell(row, col, temp)
+    def set_clicked_cell(self, pos):
+        """
+        Increases state of cell. 
+        """
+        # TOD
+        row = int(pos[1] / self.cell_y + 1)
+        col = int(pos[0] / self.cell_x + 1)
+        temp = ((self.auto.get_cell(row, col) + 1)
+                 % self.self._auto[self._index]._states)
+        self._auto[self._index].set(row, col, temp, False)

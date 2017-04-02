@@ -16,9 +16,8 @@ from ca.ui.pygame_ui import CAPygameUI
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.DEBUG)
-LOG.basicConfig()
+logging.basicConfig()
 
-AUTOMATONS = [CMRNeumann]
 LOADERS = [JSONLoader]
 
 
@@ -31,6 +30,8 @@ def add_args(parser):
     """
     parser.add_argument('--config', help="configuration files")
     parser.add_argument('--resize', action='store_true')
+    parser.add_argument('-r', '--rows', type=int)
+    parser.add_argument('-c', '--cols', type=int)
 
 
 def main():
@@ -40,7 +41,7 @@ def main():
     parser = argparse.ArgumentParser()
     add_args(parser)
     # Add module specific arguments
-    [m.add_args(parser) for m in AUTOMATONS + LOADERS]
+    [m.add_args(parser) for m in LOADERS]
     # Parse args
     args = parser.parse_args()
 
@@ -49,8 +50,14 @@ def main():
     if args.config:
         config.read(args.config)
 
+    # Load templates
+    templates = []
+    for l in LOADERS:
+        for template in l.load(args, config):
+            templates.append(template)
+
     # Get automatons
-    auto = get_automatons(args, config)
+    auto = get_automatons(args, config, templates)
     if not auto:
         LOG.info("No automatons")
         return

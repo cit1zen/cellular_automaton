@@ -13,7 +13,7 @@ A = Automaton
 
 import logging
 
-from ca.lattice import Lattice
+from ca.automatons.lattice import Lattice
 
 LOG = logging.getLogger(__name__)
 
@@ -34,53 +34,9 @@ class CMRNeumann(Lattice):
             rules - CMR rules.
             infinite - If lattice is "infinite".
         """
-        self._states = states
         self._rules = [self._parse_rule(x) for x in rules]
-        super(self.__class__, self).__init__(height, width, infinite=infinite)
-
-    @classmethod
-    def add_args(cls, parser):
-        """
-        Add module specific args.
-
-        Args:
-            parser - ArgumentParser.
-        """
-        parser.add_argument('--states', type=int,
-                            help="number of automaton states")
-        parser.add_argument('--cmr-rules', nargs='+',
-                            help="CMR rules")
-        super(CMRNeumann, self).add_args(parser)
-
-    @classmethod
-    def get_instance(cls, args=None, config=None):
-        """
-        Get configured instance of the class.
-
-        Args:
-            args - CMD arguments.
-            config - Configuration from file.
-
-        Returns:
-            Configured class or None.
-        """
-        try:
-            if args and args.cmr_rules:
-                rules = [x for x in args.cmr_rules if cls._valid_rule(x)]
-            else:
-                rules = [x for x in config.get(automaton, rules).split(',')
-                         if cls._valid_rule(x)]
-            return cls(args.height if args and args.height
-                       else config.get('lattice', 'height'),
-                       args.width if args and args.width
-                       else config.get('lattice', 'width'),
-                       args.states if args and args.states
-                       else config.get('automaton', 'states'),
-                       rules)
-        except (ValueError, AttributeError):
-            LOG.exception("Unable to configure {} class"
-                          .format(cls.__name__))
-            raise
+        super(self.__class__, self).__init__(height, width, states,
+                                             infinite=infinite)
 
     @classmethod
     def _valid_rule(cls, rule):
