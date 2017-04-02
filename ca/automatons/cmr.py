@@ -50,7 +50,7 @@ class CMRNeumann(Lattice):
                             help="number of automaton states")
         parser.add_argument('--cmr-rules', nargs='+',
                             help="CMR rules")
-        super(self.__class__, self).add_args(parser)
+        super(CMRNeumann, self).add_args(parser)
 
     @classmethod
     def get_instance(cls, args=None, config=None):
@@ -88,7 +88,7 @@ class CMRNeumann(Lattice):
         # TODO
         """
         # TODO what if 2 digits states
-        if len(rule.rule.split('|')) == 9 and int(rule):
+        if len(rule.count('|')) == 10:
             return True
         return False
 
@@ -103,7 +103,7 @@ class CMRNeumann(Lattice):
             Parsed rule.
         """
         parsed = [int(x) for x in rule.split('|')]
-        if len(parsed) == 9:
+        if len(parsed) == 11:
             return parsed
         else:
             # TODO exception

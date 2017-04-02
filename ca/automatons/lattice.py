@@ -40,7 +40,7 @@ class Lattice(object):
         # TODO
         return [len(_lat), len(_lat[0])]
 
-    def set(self, row, col, value):
+    def set(self, row, col, value, next_gen=True):
         """
         Set value of a cell. Lattice where changes will be saved is
         plus one generation from lattice from where we get cell value.
@@ -49,7 +49,11 @@ class Lattice(object):
             row - Row.
             col - Column.
             value - New value of cell.
+            next - Set value in next generation.
         """
+        if not next_gen:
+            self._lat[self._gen][row][col] = value
+            return
         # If future has to be removed
         if self._gen < len(self._lat) - 1:
             LOG.debug('Removing invalid history')
