@@ -2,6 +2,7 @@
 User interface created using pygame library.
 """
 
+import sys
 import logging
 
 import pygame
@@ -42,29 +43,29 @@ class CAPygameUI():
             automatons - CA automatons.
             border - If cell border should be drawn.
         """
-        self._cell_x = cell_x
-        self._cell_y = cell_y
+        self._cell_x = int(cell_x)
+        self._cell_y = int(cell_y)
         self._auto = automatons
         self._index = 0
         self._border = border
         self._win = None
         self.keys = {
             # Next rule
-            pygame.K_RIGHT: self._next_auto,
+            pygame.K_RIGHT: self.next,
             # Previus rule
-            pygame.K_LEFT: self._prev_auto,
+            pygame.K_LEFT: self.back,
             # Next generation
-            pygame.K_UP: self._next,
+            pygame.K_UP: self.next_auto,
             # Previus generation
-            pygame.K_DOWN: self._back,
+            pygame.K_DOWN: self.prev_auto,
             # Reset to clean lattice
-            pygame.K_c: self._reset,
+            pygame.K_c: self.reset,
             # Exit prog
             # TODO
-            pygame.K_ESCAPE: self._exit
+            pygame.K_ESCAPE: self.exit
         }
 
-    def _fit_ca(self):
+    def _resize_window(self):
         """
         Resizes window to fit CA.
         """
@@ -90,7 +91,7 @@ class CAPygameUI():
                 # Pressing key
                 elif event.type == pygame.KEYDOWN:
                     try:
-                        self._keys[event.key]()
+                        self.keys[event.key]()
                     # Some key we do not map
                     except KeyError:
                         pass
@@ -108,40 +109,40 @@ class CAPygameUI():
         for r in range(proportions[0]):
             for c in range(proportions[1]):
                 pygame.draw.rect(self._win,
-                                 COLOR[self._auto[self._index].get_cell(r, c)],
-                                 (c * self._cell_w, r * self._cell_h,
-                                  self._cell_w, self._cell_h), 0)
+                                 COLOR[self._auto[self._index].get(r, c)],
+                                 (c * self._cell_x, r * self._cell_y,
+                                  self._cell_x, self._cell_y), 0)
 
         for r in range(proportions[0]):
             for c in range(proportions[1]):
                 pygame.draw.rect(self._win,
                                  WHITE,
-                                 (c * self._cell_w, r * self._cell_h,
-                                  self._cell_w - 1 , self._cell_h - 1 ), 1)
+                                 (c * self._cell_x, r * self._cell_y,
+                                  self._cell_x, self._cell_y), 1)
         pygame.display.update()
 
-    def _exit(self):
+    def exit(self):
         """
         Exit.
         """
         # TODO
         sys.exit(0)
 
-    def _next(self):
+    def next(self):
         """
         Develop CA, next gen of CA.
         """
         LOG.debug("_next")
         self._auto[self._index].next()
 
-    def _back(self):
+    def back(self):
         """
         Step one generation back.
         """
         LOG.debug("_back")
         self._auto[self._index].back()
 
-    def _save_to_img(self):
+    def save_to_img(self):
         """
         Saves lattice to jpeg.
         """
@@ -149,24 +150,24 @@ class CAPygameUI():
         LOG.info("Saving lattice as " + filename)
         pygame.image.save(self._win, filename)
 
-    def _reset(self):
+    def reset(self):
         """
         Reset lattice to clean state.
         """
         LOG.debug("reset")
         self._auto[self._index].move(-self._auto[self._index]._gen)
 
-    def _next_auto(self):
+    def next_auto(self):
         """
         Load next automaton.
         """
         LOG.debug("next_rule")
         if self._auto:
             self._index = (self._index + 1) % len(self._auto)
-            self._fit_ca()
+            self._resize_window()
             self._draw()
 
-    def _prev_rule(self):
+    def prev_auto(self):
         """
         Load previous automaton.
         """
@@ -175,7 +176,7 @@ class CAPygameUI():
             self._index -= 1
             if self._index < 0:
                 self._index = len(self._auto) - 1
-            self._fit_ca()
+            self._resize_window()
             self._draw()
 
     def set_clicked_cell(self, pos):
@@ -183,8 +184,8 @@ class CAPygameUI():
         Increases state of cell. 
         """
         # TOD
-        row = int(pos[1] / self.cell_y + 1)
-        col = int(pos[0] / self.cell_x + 1)
-        temp = ((self.auto.get_cell(row, col) + 1)
-                 % self.self._auto[self._index]._states)
-        self._auto[self._index].set(row, col, temp, False)
+        row = int(pos[1] / self._cell_y)
+        col = int(pos[0] / self._cell_x)
+        value = ((self._auto[self._index].get(row, col) + 1)
+                  % self._auto[self._index]._states)
+        self._auto[self._index].set(row, col, value)

@@ -45,7 +45,7 @@ class JSONLoader(LoaderInterface):
         Args:
             parser - ArgumentParser.
         """
-        parser.add_argument('--json', nargs='+',
+        parser.add_argument('--json', nargs='+', default=[],
                             help=("JSON files with automaton "
                                   "rules and configuration"))
 

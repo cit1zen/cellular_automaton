@@ -11,7 +11,7 @@ import argparse
 import configparser
 
 from ca.automatons.cmr import CMRNeumann
-from ca.loaders.json_loader import JSONLoader
+from ca.loaders import JSONLoader
 from ca.ui.pygame_ui import CAPygameUI
 
 LOG = logging.getLogger(__name__)
@@ -19,6 +19,7 @@ LOG.setLevel(logging.DEBUG)
 logging.basicConfig()
 
 LOADERS = [JSONLoader]
+AUTOMATONS = [CMRNeumann]
 
 
 def add_args(parser):
@@ -56,13 +57,19 @@ def main():
         for template in l.load(args, config):
             templates.append(template)
 
-    # Get automatons
-    auto = get_automatons(args, config, templates)
+    auto = []
+    for t in templates:
+        for a in AUTOMATONS:
+            if a.is_right(t):
+                temp = a.get_instance(t, args, config)
+                if temp:
+                    auto.append(temp)
     if not auto:
-        LOG.info("No automatons")
+        LOG.error('No automatons')
         return
 
-    CAPygameUI(config.cell_x, config.cell_y, auto).main_loop()
+    CAPygameUI(config['pygame']['cell_x'],
+               config['pygame']['cell_y'], auto).main_loop()
 
 
 if __name__ == "__main__":

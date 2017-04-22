@@ -4,21 +4,22 @@ Cellular automaton based on conditionally matching rules.
 CMR coding:
 SCSCSCSCS
 S = State
-A = Automaton
+C = Condition
     * 0  cell_state >= condition_state
     * 1  cell_state <= condition_state
     * 2  cell_state == condition_state
     * 3  cell_state != condition_state
 """
 
+import copy
 import logging
 
-from ca.automatons.lattice import Lattice
+from ca.automatons.automaton import Automaton
 
 LOG = logging.getLogger(__name__)
 
 
-class CMRNeumann(Lattice):
+class CMRNeumann(Automaton):
     """
     CMR automating with Von Neumann's neighborhood.
     """
@@ -34,7 +35,7 @@ class CMRNeumann(Lattice):
             rules - CMR rules.
             infinite - If lattice is "infinite".
         """
-        self._rules = [self._parse_rule(x) for x in rules]
+        self._rules = rules
         super(self.__class__, self).__init__(height, width, states,
                                              infinite=infinite)
 
@@ -43,27 +44,9 @@ class CMRNeumann(Lattice):
         """
         # TODO
         """
-        # TODO what if 2 digits states
-        if len(rule.count('|')) == 10:
+        if len(rule) == 11:
             return True
         return False
-
-    def _parse_rule(self, rule):
-        """
-        Parse rule from string.
-
-        Args:
-            rule - Rule in form of string.
-
-        Returns:
-            Parsed rule.
-        """
-        parsed = [int(x) for x in rule.split('|')]
-        if len(parsed) == 11:
-            return parsed
-        else:
-            # TODO exception
-            raise AttributeError('Invalid CMR rule {}'.format(rule))
 
     def _right_rule(self, hood, rule):
         """
@@ -113,23 +96,28 @@ class CMRNeumann(Lattice):
         Returns:
             Von Neumann's neighborhood.
         """
-        return [self.get_cell(row - 1, col),
-                self.get_cell(row, col - 1),
-                self.get_cell(row, col),
-                self.get_cell(row, col + 1),
-                self.get_cell(row + 1, col)]
+        return [self.get(row - 1, col),
+                self.get(row, col - 1),
+                self.get(row, col),
+                self.get(row, col + 1),
+                self.get(row + 1, col)]
 
     def _next_gen(self):
         """
         Next generation of automaton.
         """
         LOG.info('Next generation of automaton')
-        for x in len(self._lat[0]):
-            for y in len(self._lat[0][0]):
+        # Append new lattice
+        self._lat.append(copy.deepcopy(self._lat[self._gen]))
+        # Do CA magic
+        for x in range(len(self._lat[0])):
+            for y in range(len(self._lat[0][0])):
                 hood = self._hood(x, y)
                 for rule in self._rules:
                     if self._right_rule(hood, rule):
-                        self.set(x, y, rule[8])
+                        super().next()
+                        self.set(x, y, rule[10])
+                        super().back()
                         break
 
     def move(self, offset):
@@ -141,9 +129,9 @@ class CMRNeumann(Lattice):
         """
         # Forward
         if offset > 0:
-            # Moving into the future
             for off in range(1, offset + 1):
-                if len(self._lat) < self._get + 1:
+                # New generation is needed
+                if self._gen + 1 == len(self._lat) :
                     self._next_gen()
                 self._gen += 1
             LOG.debug("Moved forward, current gen is {}"
@@ -151,4 +139,92 @@ class CMRNeumann(Lattice):
         # Back
         # Moving into the past
         elif offset < 0 and offset + self._gen != -1:
-            super(self.__class__, self).move(offset)
+            super().move(offset)
+
+    @classmethod
+    def is_right(cls, templ):
+        """
+        If template belongs to this class.
+
+        Args:
+            templ: Automaton template.
+
+        Returns:
+            True if yes, False otherwise.
+        """
+        try:
+            if (
+                templ['rows'] > 1 
+                and templ['cols'] > 1
+                and templ['hood'] == 'vonneumann'
+                and templ['rule_type']
+                and templ['origin']
+                and templ['rules']
+               ):
+                return True
+        except KeyError:
+            pass
+        return False
+
+    @classmethod
+    def get_instance(cls, templ, args=None, config=None):
+        """
+        Get configured instance of automaton.
+        """
+        # We try to get number of rows
+        rows = templ['rows'] if templ and 'rows' in templ else 0
+        rows = (args.rows
+                if (args
+                    and args.rows
+                    and args.rows > rows)
+                else rows)
+        try:
+            if not (args and args.rows):
+                rows = (int(config['ca']['rows'])
+                        if int(config['ca']['rows']) > rows
+                        else rows)
+        except KeyError:
+            pass
+        # Number of cols
+        cols = templ['cols'] if templ and 'cols' in templ else 0
+        cols = (args.cols
+                if (args
+                    and args.cols
+                    and args.cols > cols)
+                else cols)
+        try:
+            if not (args and args.cols):
+                cols = (int(config['ca']['cols'])
+                        if int(config['ca']['cols']) > cols
+                        else cols)
+        except KeyError:
+            pass
+        instance = cls(rows, cols, templ['states'], templ['rules'])
+        instance._origin(templ['origin'])
+        print("AHOJ")
+        return instance
+
+    # TODO better name
+    def _origin(self, lattice):
+        """
+        # TODO
+        """
+        # TODO rename to offset
+        lat_row = int(-((len(self._lat[0])-len(lattice))/2))
+        lat_col = int(-((len(self._lat[0][0])-len(lattice[0]))/2))
+        for row in range(len(self._lat[0])):
+            # Ski
+            if lat_row + row < 0:
+                continue
+            # Finish
+            if lat_row + row >= len(lattice):
+                break 
+            for col in range(len(self._lat[0][0])):
+                print(col)
+                # Skip
+                if lat_col + col < 0:
+                    continue
+                if lat_col + col >= len(lattice[0]):
+                    break
+                self.set(row, col, lattice[lat_col + col]
+                                          [lat_row + row])

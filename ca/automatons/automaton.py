@@ -39,7 +39,7 @@ class Automaton():
             List.
         """
         # TODO
-        return [len(_lat), len(_lat[0])]
+        return [len(self._lat[0]), len(self._lat[0][0])]
 
     def set(self, row, col, value):
         """
@@ -50,22 +50,11 @@ class Automaton():
             col - Column.
             value - New value of cell.
         """
+        if self._gen < len(self._lat) - 1:
+            self._lat = self._lat[:self._gen + 1]
         LOG.debug('Setting value of cell {}x{} to {}'
                   .format(row, col, value))
-        self._lat[self._gen + 1][row][col] = value
-
-    def _set_next(self, row, col, value):
-        """
-        Set value of cell in next generation.
-
-        Args:
-            row - Row.
-            col - Column.
-            value - New value of cell.
-        """
-        self.next()
-        self.set(row, col, value)
-        self.back()
+        self._lat[self._gen][row][col] = value
 
     def get(self, row, col):
         """
@@ -105,7 +94,7 @@ class Automaton():
         if offset > 0:
             # Moving into the future
             for off in range(1, offset + 1):
-                if len(self._lat) < self._get + 1:
+                if len(self._lat) < self._gen + 1:
                     self._lat.append(copy.deepcopy(self._lat[self._gen]))
                 self._gen += 1
             LOG.debug("Moved forward, current gen is {}"
