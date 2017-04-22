@@ -24,7 +24,7 @@ class CMRNeumann(Automaton):
     CMR automating with Von Neumann's neighborhood.
     """
 
-    def __init__(self, height, width, states, rules, infinite=True):
+    def __init__(self, height, width, states, rules):
         """
         Constructor.
 
@@ -33,11 +33,10 @@ class CMRNeumann(Automaton):
             width - Width of lattice.
             states - Number of automaton states.
             rules - CMR rules.
-            infinite - If lattice is "infinite".
         """
-        self._rules = rules
-        super(self.__class__, self).__init__(height, width, states,
-                                             infinite=infinite)
+        self._rules = [[int(x) for x in rule] for rule in rules]
+        print(self._rules)
+        super(CMRNeumann, self).__init__(height, width, states)
 
     @classmethod
     def _valid_rule(cls, rule):
@@ -120,6 +119,7 @@ class CMRNeumann(Automaton):
                         super().back()
                         break
 
+
     def move(self, offset):
         """
         Move between generations.
@@ -154,9 +154,9 @@ class CMRNeumann(Automaton):
         """
         try:
             if (
-                templ['rows'] > 1 
-                and templ['cols'] > 1
-                and templ['hood'] == 'vonneumann'
+                int(templ['rows']) > 1 
+                and int(templ['cols']) > 1
+                and templ['hood'] == 'von_neumann'
                 and templ['rule_type']
                 and templ['origin']
                 and templ['rules']
@@ -179,6 +179,7 @@ class CMRNeumann(Automaton):
                     and args.rows > rows)
                 else rows)
         try:
+            rows = int(rows)
             if not (args and args.rows):
                 rows = (int(config['ca']['rows'])
                         if int(config['ca']['rows']) > rows
@@ -193,38 +194,14 @@ class CMRNeumann(Automaton):
                     and args.cols > cols)
                 else cols)
         try:
+            cols = int(cols)
             if not (args and args.cols):
                 cols = (int(config['ca']['cols'])
                         if int(config['ca']['cols']) > cols
                         else cols)
         except KeyError:
             pass
-        instance = cls(rows, cols, templ['states'], templ['rules'])
-        instance._origin(templ['origin'])
-        print("AHOJ")
+        instance = cls(int(rows), int(cols), templ['states'],
+                       templ['rules'])
+        instance._copy(templ['origin'])
         return instance
-
-    # TODO better name
-    def _origin(self, lattice):
-        """
-        # TODO
-        """
-        # TODO rename to offset
-        lat_row = int(-((len(self._lat[0])-len(lattice))/2))
-        lat_col = int(-((len(self._lat[0][0])-len(lattice[0]))/2))
-        for row in range(len(self._lat[0])):
-            # Ski
-            if lat_row + row < 0:
-                continue
-            # Finish
-            if lat_row + row >= len(lattice):
-                break 
-            for col in range(len(self._lat[0][0])):
-                print(col)
-                # Skip
-                if lat_col + col < 0:
-                    continue
-                if lat_col + col >= len(lattice[0]):
-                    break
-                self.set(row, col, lattice[lat_col + col]
-                                          [lat_row + row])

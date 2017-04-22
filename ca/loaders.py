@@ -60,18 +60,24 @@ class JSONLoader(LoaderInterface):
         """
         templ = []
         for name in args.json:
-            with open(name) as f: 
-                data = json.load(f)
-                print(data)
+            with open(name) as f:
+                # HACK
+                # so it doesn't matter how rows is writter
+                # example: rows, Rows, ROWS
+                data = json.loads(f.read().lower())
                 try:
-                    templ.append({'rows': data['rows'],
-                                  'cols': data['cols'],
+                    templ.append({'rows': int(data['rows']),
+                                  'cols': int(data['cols']),
                                   'rule_type': 'CMR',
                                   'rules': data['rules'],
-                                  'states': data['states'],
                                   'hood': data['hood'],
-                                  'origin': data['origin']}
+                                  'states': int(data['states'])
+                                  }
                                 )
                 except IndexError:
-                    pass
+                    continue
+                if 'origin' in data:
+                    templ[-1]['origin'] = data['origin']
+                else:
+                    templ[-1]['origin'] = [[1]]
         return templ

@@ -29,7 +29,7 @@ class Automaton():
         # Current generation of cellular
         self._gen = 0
         self._inf = infinite
-        self._states = states
+        self._states = int(states)
 
     def proportions(self):
         """
@@ -54,7 +54,7 @@ class Automaton():
             self._lat = self._lat[:self._gen + 1]
         LOG.debug('Setting value of cell {}x{} to {}'
                   .format(row, col, value))
-        self._lat[self._gen][row][col] = value
+        self._lat[self._gen][row][col] = int(value)
 
     def get(self, row, col):
         """
@@ -132,3 +132,28 @@ class Automaton():
         LOG.warning('{} has not its own is_right method'
                     .format(cls.__name__))
         return False
+
+    def _copy(self, lattice):
+        """
+        Copy lattice to automaton lattice.
+
+        Args:
+            Lattice: Copied lattice.
+        """
+        off_row = int(-((len(self._lat[0])-len(lattice))/2))
+        off_col = int(-((len(self._lat[0][0])-len(lattice[0]))/2))
+        for row in range(len(self._lat[0])):
+            # Skip
+            if off_row + row < 0:
+                continue
+            # Finish
+            if off_row + row >= len(lattice):
+                break 
+            for col in range(len(self._lat[0][0])):
+                # Skip
+                if off_col + col < 0:
+                    continue
+                if off_col + col >= len(lattice[0]):
+                    break
+                self.set(row, col, lattice[off_col + col]
+                                          [off_row + row])
