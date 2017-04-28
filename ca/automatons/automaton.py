@@ -13,23 +13,23 @@ class Automaton():
     Lattice for cellular automatons.
     """
 
-    def __init__(self, height, width, states, infinite=True):
+    def __init__(self, height, width, states, name=""):
         """
         Constructor.
 
         Args:
-            height - Height of lattice.
-            width - Width of lattice.
-            infinite - If lattice is "infinite".
+            height: Height of lattice.
+            width: Width of lattice.
+            states: Number of states.
+            name: Name of file with rules.
         """
-        LOG.info('Creating {}finite {}x{} lattice'
-                 .format('in' if infinite else '',
-                         height, width))
+        LOG.info('Creating {}x{} lattice'
+                 .format(height, width))
         self._lat = [[[0 for x in range(width)] for y in range(height)]]
         # Current generation of cellular
         self._gen = 0
-        self._inf = infinite
         self._states = int(states)
+        self.name = name
 
     def proportions(self):
         """
@@ -46,9 +46,9 @@ class Automaton():
         Set value of cell.
 
         Args:
-            row - Row.
-            col - Column.
-            value - New value of cell.
+            row: Row.
+            col: Column.
+            value: New value of cell.
         """
         if self._gen < len(self._lat) - 1:
             self._lat = self._lat[:self._gen + 1]
@@ -61,21 +61,23 @@ class Automaton():
         Get value of cell.
 
         Args:
-            row - Row.
-            col - Column.
+            row: Row.
+            col: Column.
 
         Returns:
             Value of the cell.
         """
         LOG.debug('Getting value of cell {}x{}'
                   .format(row, col))
-        try:
+        if (
+            row >= 0
+            and row < len(self._lat[self._gen])
+            and col >= 0
+            and col < len(self._lat[self._gen][0])
+           ):
             return self._lat[self._gen][row][col]
-        except IndexError:
-            if self._inf:
-                return 0
-            else:
-                raise
+        else:
+            return 0
 
     def get_generation(self):
         """
@@ -88,7 +90,7 @@ class Automaton():
         Move between generations.
 
         Args:
-            offset - How many generations we want to move.
+            offset: How many generations we want to move.
         """
         # Forward
         if offset > 0:
@@ -155,5 +157,4 @@ class Automaton():
                     continue
                 if off_col + col >= len(lattice[0]):
                     break
-                self.set(row, col, lattice[off_col + col]
-                                          [off_row + row])
+                self.set(row, col, lattice[off_row + row][off_col + col])

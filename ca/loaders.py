@@ -71,6 +71,7 @@ class JSONLoader(LoaderInterface):
                                   'rule_type': 'CMR',
                                   'rules': data['rules'],
                                   'hood': data['hood'],
+                                  'name': name,
                                   'states': int(data['states'])
                                   }
                                 )

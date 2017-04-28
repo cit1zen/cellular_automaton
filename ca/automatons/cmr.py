@@ -24,7 +24,7 @@ class CMRNeumann(Automaton):
     CMR automating with Von Neumann's neighborhood.
     """
 
-    def __init__(self, height, width, states, rules):
+    def __init__(self, height, width, states, rules, name=""):
         """
         Constructor.
 
@@ -35,8 +35,7 @@ class CMRNeumann(Automaton):
             rules - CMR rules.
         """
         self._rules = [[int(x) for x in rule] for rule in rules]
-        print(self._rules)
-        super(CMRNeumann, self).__init__(height, width, states)
+        super(CMRNeumann, self).__init__(height, width, states, name)
 
     @classmethod
     def _valid_rule(cls, rule):
@@ -202,6 +201,8 @@ class CMRNeumann(Automaton):
         except KeyError:
             pass
         instance = cls(int(rows), int(cols), templ['states'],
-                       templ['rules'])
+                       templ['rules'], templ['name'])
+        # We need to flip lattice for lattice to be
+        # properly oriented
         instance._copy(templ['origin'])
         return instance

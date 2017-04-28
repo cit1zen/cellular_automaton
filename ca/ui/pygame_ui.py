@@ -92,6 +92,7 @@ class CAPygameUI():
                 elif event.type == pygame.KEYDOWN:
                     try:
                         self.keys[event.key]()
+                        self._draw()
                     # Some key we do not map
                     except KeyError:
                         pass
@@ -99,7 +100,7 @@ class CAPygameUI():
                 # TODO
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     self.set_clicked_cell(pygame.mouse.get_pos())
-                self._draw()
+                    self._draw()
 
     def _draw(self):
         """
@@ -166,6 +167,7 @@ class CAPygameUI():
             self._index = (self._index + 1) % len(self._auto)
             self._resize_window()
             self._draw()
+            print(self._auto[self._index].name)
 
     def prev_auto(self):
         """
@@ -178,6 +180,7 @@ class CAPygameUI():
                 self._index = len(self._auto) - 1
             self._resize_window()
             self._draw()
+            print(self._auto[self._index].name)
 
     def set_clicked_cell(self, pos):
         """
