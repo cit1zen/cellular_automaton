@@ -166,40 +166,20 @@ class CMRNeumann(Automaton):
         return False
 
     @classmethod
-    def get_instance(cls, templ, args=None, config=None):
+    def get_instance(cls, templ, args, config):
         """
         Get configured instance of automaton.
         """
         # We try to get number of rows
-        rows = templ['rows'] if templ and 'rows' in templ else 0
-        rows = (args.rows
-                if (args
-                    and args.rows
-                    and args.rows > rows)
-                else rows)
-        try:
-            rows = int(rows)
-            if not (args and args.rows):
-                rows = (int(config['ca']['rows'])
-                        if int(config['ca']['rows']) > rows
-                        else rows)
-        except KeyError:
-            pass
+        if args.rows:
+            rows = args.rows
+        else:
+            rows = templ['rows']
         # Number of cols
-        cols = templ['cols'] if templ and 'cols' in templ else 0
-        cols = (args.cols
-                if (args
-                    and args.cols
-                    and args.cols > cols)
-                else cols)
-        try:
-            cols = int(cols)
-            if not (args and args.cols):
-                cols = (int(config['ca']['cols'])
-                        if int(config['ca']['cols']) > cols
-                        else cols)
-        except KeyError:
-            pass
+        if args.cols:
+            cols = args.cols
+        else:
+            cols = templ['cols']
         instance = cls(int(rows), int(cols), templ['states'],
                        templ['rules'], templ['name'])
         # We need to flip lattice for lattice to be

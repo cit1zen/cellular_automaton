@@ -158,3 +158,25 @@ class Automaton():
                 if off_col + col >= len(lattice[0]):
                     break
                 self.set(row, col, lattice[off_row + row][off_col + col])
+
+    @classmethod
+    def is_right(cls, templ):
+        """
+        If template belongs to this class.
+
+        Args:
+            templ: Automaton template.
+
+        Returns:
+            True if yes, False otherwise.
+        """
+        raise NotImplementedError('is_right is not implemeted in {}'
+                                  .format(cls.__name__))
+
+    @classmethod
+    def get_instance(cls, templ, args, config):
+        """
+        Get configured instance of automaton.
+        """
+        raise NotImplementedError('get_instance is not implemeted in {}'
+                                  .format(cls.__name__))

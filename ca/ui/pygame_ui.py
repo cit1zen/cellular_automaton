@@ -12,6 +12,9 @@ LOG = logging.getLogger(__name__)
 
 # Color const.
 WHITE = pygame.Color(0xFFFFFF00)
+ALMOST_BLACK = pygame.Color(0x25252500)
+GREY_1 = pygame.Color(0x79797900)
+GREY_2 = pygame.Color(0x30303000)
 BLACK = pygame.Color(0x00000000)
 RED = pygame.Color(0xFF000000)
 GREEN = pygame.Color(0x00FF0000)
@@ -24,7 +27,7 @@ PINK = pygame.Color(0xFF087F00)
 BROWN = pygame.Color(0x825A2C00)
 ORANGE = pygame.Color(0xFA680000)
 VIOLET = pygame.Color(0xAA00FF00)
-COLOR = [BLACK, RED, GREEN, YELLOW, BROWN, WHITE, ORANGE, CYAN, VIOLET,
+COLOR = [WHITE, ALMOST_BLACK, BLUE, WHITE, RED, GREY_1, GREY_2, RED, GREEN, YELLOW, BROWN, BLACK, ORANGE, CYAN, VIOLET,
          GRAY, MAGENTA, PINK, BLUE]
 
 
@@ -60,6 +63,8 @@ class CAPygameUI():
             pygame.K_DOWN: self.prev_auto,
             # Reset to clean lattice
             pygame.K_c: self.reset,
+            # Save lattice
+            pygame.K_p: self.save_to_img,
             # Exit prog
             # TODO
             pygame.K_ESCAPE: self.exit
@@ -117,7 +122,7 @@ class CAPygameUI():
         for r in range(proportions[0]):
             for c in range(proportions[1]):
                 pygame.draw.rect(self._win,
-                                 WHITE,
+                                 BLACK,
                                  (c * self._cell_x, r * self._cell_y,
                                   self._cell_x, self._cell_y), 1)
         pygame.display.update()
