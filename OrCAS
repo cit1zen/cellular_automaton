@@ -5,215 +5,72 @@ Python3 implementation of cellular automaton.
 Rules of CA are encoded by CMR (Conditionally matching rules).
 """
 
-import os
-import sys
-import json
+import re
 import logging
+import argparse
+import configparser
 
-import pygame
+from ca.automatons.cmr import CMRNeumann
+from ca.loaders import JSONLoader
+from ca.ui.pygame_ui import CAPygameUI
 
-import cmr
-
-pygame.init()
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
 logging.basicConfig()
 
-# TODO
-# implicitni velikost CA (_SIZE x _SIZE bunek) - modifikovatelne
-_SIZE = 50
-# TODO
-# velikost okna celularniho prostoru (_WIN x _WIN pixelu) - modif.
-_WIN = 600
-
-# nejake barevne konstanty
-white = pygame.Color(0xFFFFFF00)
-black = pygame.Color(0x00000000)
-red = pygame.Color(0xFF000000)
-green = pygame.Color(0x00FF0000)
-blue = pygame.Color(0x0000FF00)
-cyan = pygame.Color(0x00FFFF00)
-magenta = pygame.Color(0xFF00FF00)
-yellow = pygame.Color(0xFFFF0000)
-gray = pygame.Color(0x64646400)
-pink = pygame.Color(0xFF087F00)
-brown = pygame.Color(0x825A2C00)
-orange = pygame.Color(0xFA680000)
-violet = pygame.Color(0xAA00FF00)
-
-color = [black, red, green, yellow, brown, white, orange, cyan, violet,
-         gray, magenta, pink, blue]
+LOADERS = [JSONLoader]
+AUTOMATONS = [CMRNeumann]
 
 
-class CAGui:
+def add_args(parser):
     """
-    Gui for cellular automaton
+    Add arguments.
+
+    Args:
+        parser - ArgumentParser.
     """
-
-    def __init__(self, auto, win):
-        """
-        Constructor.
-
-        :param auto: Automaton.
-        :type auto: # TODO
-        :param win: Pygame window.
-        :type win: # TODO
-        """
-        self.auto = auto
-        self.rule_file_list = []
-        self.rule_index = 0
-        # Size of cells
-        self.cell_w = pygame.display.Info().current_w / self.auto._cols
-        self.cell_h = pygame.display.Info().current_h / self.auto._rows
-        # Pygame window
-        self.win = win
-
-        self.keys = {
-            # Next rule
-            pygame.K_RIGHT: self.next_rule,
-            # Previus rule
-            pygame.K_LEFT: self.prev_rule,
-            # Next generation
-            pygame.K_t: self.next_gen,
-            pygame.K_UP: self.next_gen,
-            pygame.K_SPACE: self.next_gen,
-            # Previus generation
-            pygame.K_DOWN: self.prev_gen,
-            # Reset to clean lattice
-            pygame.K_c: self.reset,
-            # Exit prog
-            # TODO
-            pygame.K_ESCAPE: self.exit
-        }
-
-    def exit(self):
-        """
-        Exit.
-        """
-        sys.exit(0)
-
-    def next_gen(self):
-        """
-        Develop CA, next gen of CA.
-        """
-        logger.debug("next_gen")
-        self.auto.next()
-
-    def prev_gen(self):
-        """
-        Step one generation back.
-        """
-        logger.debug("prev_gen")
-        if self.auto.current_save() != 0:
-            self.auto.load((self.auto.current_save() - 1))
-
-    def save_to_img(self):
-        """
-        Saves lattice to jpeg.
-        """
-        filename = str(self.auto.current_save()) + ".jpeg"
-        logger.info("Saving lattice as " + filename)
-        pygame.image.save(self.win, filename)
-
-    def reset(self):
-        """
-        Reset lattice to clean state.
-        """
-        logger.debug("reset")
-        self.auto.reset()
-
-    def next_rule(self):
-        """
-        Load next rules into automaton and reset it.
-        """
-        logger.debug("next_rule")
-        if self.rule_file_list:
-            self.rule_index = (self.rule_index + 1) % len(self.rule_file_list)
-            filename = str(self.rule_file_list[self.rule_index])
-            logger.info("Loading CA from" + filename)
-            self._load_from_json(filename)
-
-    def prev_rule(self):
-        """
-        Load previous rules into automaton and reset it.
-        """
-        logger.debug("prev_rule")
-        if self.rule_file_list:
-            if self.rule_index == 0:
-                self.rule_index = len(self.rule_file_list) - 1
-            else:
-                self.rule_index = self.rule_index - 1
-            filename = str(self.rule_file_list[self.rule_index])
-            logger.info("Loading CA from" + filename)
-            self._load_from_json(filename)
-
-    def _load_from_json(self, filename):
-        """
-        Loads JSON from file and recreates automaton from it.
-        """
-        raise NotImplementedError("load_from_json")
-        with open(filename, "r") as f:
-            json_data = json.load(f)
-            # Check rules
-            for rule in json_data:
-                pass
-
-    def set_clicked_cell(self, pos):
-        """
-        Increases state of cell. 
-        """
-        row = int(pos[1] / self.cell_h + 1)
-        col = int(pos[0] / self.cell_w + 1)
-        temp = (self.auto.get_cell(row, col) + 1) % self.auto._states
-        self.auto.set_cell(row, col, temp)
-
-    def draw(self, border=True):
-        """
-        Draw CA onto window
-
-        :param lines: If border between cels should be drawed.
-        :type lines: boolean
-        """
-        # TODO draw without lines
-        for row in range(self.auto._rows + 1):
-            for col in range(1, self.auto._cols + 1):
-                pygame.draw.rect(self.win, color[self.auto.get_cell(row, col)],
-                                 ((col - 1) * self.cell_w, (row - 1) * self.cell_h,
-                                  self.cell_w, self.cell_h), 0)
-                if border:
-                    pygame.draw.rect(self.win, blue,
-                                     ((col - 1) * self.cell_w, (row - 1) * self.cell_h,
-                                      self.cell_w, self.cell_h), 1)
-        pygame.display.update()
-
-    def main_loop(self):
-        """
-        Main loop of GUI.
-        """
-        self.draw()
-        while True:
-            for event in pygame.event.get():
-                # Quit
-                if event.type == pygame.QUIT:
-                    sys.exit(0)
-                # Pressing key
-                elif event.type == pygame.KEYDOWN:
-                    try:
-                        self.keys[event.key]()
-                    # Some key we do not map
-                    except KeyError:
-                        pass
-                # Mouse pressed
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    self.set_clicked_cell(pygame.mouse.get_pos())
-                self.draw()
+    parser.add_argument('--config', help="configuration files")
+    parser.add_argument('--resize', action='store_true')
+    parser.add_argument('-r', '--rows', type=int)
+    parser.add_argument('-c', '--cols', type=int)
 
 
 def main():
-    win = pygame.display.set_mode((_WIN, _WIN))
-    gui = CAGui(cmr.Cmr(20, 20, 8), win)
-    gui.main_loop()
+    """
+    Main function.
+    """
+    parser = argparse.ArgumentParser()
+    add_args(parser)
+    # Add module specific arguments
+    [m.add_args(parser) for m in LOADERS]
+    # Parse args
+    args = parser.parse_args()
+
+    # Load config
+    config = configparser.ConfigParser()
+    if args.config:
+        config.read(args.config)
+
+    # Load templates
+    templates = []
+    for l in LOADERS:
+        for template in l.load(args, config):
+            templates.append(template)
+
+    auto = []
+    for t in templates:
+        for a in AUTOMATONS:
+            if a.is_right(t):
+                temp = a.get_instance(t, args, config)
+                if temp:
+                    auto.append(temp)
+    if not auto:
+        LOG.error('No automatons')
+        return
+
+    CAPygameUI(config['pygame']['cell_x'],
+               config['pygame']['cell_y'], auto).main_loop()
+
 
 if __name__ == "__main__":
     main()
