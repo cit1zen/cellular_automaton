@@ -29,10 +29,10 @@ class CMRNeumann(Automaton):
         Constructor.
 
         Args:
-            height - Height of lattice.
-            width - Width of lattice.
-            states - Number of automaton states.
-            rules - CMR rules.
+            height: Height of lattice.
+            width: Width of lattice.
+            states: Number of automaton states.
+            rules: CMR rules.
         """
         self._rules = [[int(x) for x in rule] for rule in rules]
         super(CMRNeumann, self).__init__(height, width, states, name)
@@ -40,7 +40,10 @@ class CMRNeumann(Automaton):
     @classmethod
     def _valid_rule(cls, rule):
         """
-        # TODO
+        Returns this ruse is valid rule of this automaton.
+
+        Returns:
+            True if valid, False otherwise
         """
         if len(rule) == 11:
             return True
@@ -51,8 +54,8 @@ class CMRNeumann(Automaton):
         If rule is right rule.
 
         Args:
-            hood - Cell neighborhood.
-            rule - CMR rule.
+            hood: Cell neighborhood.
+            rule: CMR rule.
 
         Returns:
             True or False.
@@ -88,8 +91,8 @@ class CMRNeumann(Automaton):
         Get Von Neumann's neighborhood of the cell.
 
         Args:
-            row - Row.
-            col - Column.
+            row: Row.
+            col: Column.
 
         Returns:
             Von Neumann's neighborhood.
@@ -124,7 +127,7 @@ class CMRNeumann(Automaton):
         Move between generations.
 
         Args:
-            offset - How many generations we want to move.
+            offset: How many generations we want to move.
         """
         # Forward
         if offset > 0:
