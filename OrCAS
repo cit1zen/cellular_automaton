@@ -2,7 +2,7 @@
 """
 Python3 implementation of cellular automaton.
 
-Rules of CA are encoded by CMR (Conditionally matching rules).
+Rules of CA are encoded using CMR (Conditionally matching rules).
 """
 
 import re
@@ -30,9 +30,11 @@ def add_args(parser):
         parser - ArgumentParser.
     """
     parser.add_argument('--config', help="configuration files")
-    parser.add_argument('--resize', action='store_true')
-    parser.add_argument('-r', '--rows', type=int)
-    parser.add_argument('-c', '--cols', type=int)
+    # parser.add_argument('--resize', action='store_true')
+    parser.add_argument('-r', '--rows', type=int,
+                        help='rows count')
+    parser.add_argument('-c', '--cols', type=int,
+                        help='number of columns')
 
 
 def main():

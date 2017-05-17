@@ -27,7 +27,7 @@ PINK = pygame.Color(0xFF087F00)
 BROWN = pygame.Color(0x825A2C00)
 ORANGE = pygame.Color(0xFA680000)
 VIOLET = pygame.Color(0xAA00FF00)
-COLOR = [WHITE, ALMOST_BLACK, BLUE, WHITE, RED, GREY_1, GREY_2, RED, GREEN, YELLOW, BROWN, BLACK, ORANGE, CYAN, VIOLET,
+COLOR = [WHITE, YELLOW, BLUE, RED, GREEN, BROWN, BLACK, ORANGE, CYAN, VIOLET,
          GRAY, MAGENTA, PINK, BLUE]
 
 
@@ -41,10 +41,10 @@ class CAPygameUI():
         Constructor.
 
         Args:
-            cell_x - Cell width.
-            cell_y - Cell height.
-            automatons - CA automatons.
-            border - If cell border should be drawn.
+            cell_x: Cell width.
+            cell_y: Cell height.
+            automatons: CA automatons.
+            border: If cell border should be drawn.
         """
         self._cell_x = int(cell_x)
         self._cell_y = int(cell_y)
@@ -191,7 +191,7 @@ class CAPygameUI():
         """
         Increases state of cell. 
         """
-        # TOD
+        # TODO
         row = int(pos[1] / self._cell_y)
         col = int(pos[0] / self._cell_x)
         value = ((self._auto[self._index].get(row, col) + 1)
