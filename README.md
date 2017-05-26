@@ -6,7 +6,7 @@ Python cellular automata visualiser.
 * Python 3
 * pygame
 
-## Known transition function templates
+## Transition function encodings
 * Conditionally matching rules
 
 ## Basic usage
